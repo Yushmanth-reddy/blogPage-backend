@@ -122,3 +122,18 @@ exports.deleteBlog = (req,res)=>{
         })
     })
 }
+
+exports.getSpecificBlog = (req,res)=>{
+    const blogid = req.params.blogid;
+    client.query(`select * from blogs where blogid = ${blogid};`)
+    .then((data)=>{
+        const blogData = data.rows[0];
+        res.status(200).json({
+            data: blogData,
+            msg : "Data sent"
+        })
+    })
+    .catch((err)=>{
+        console.log(err);
+    })
+}

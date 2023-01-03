@@ -29,7 +29,7 @@ exports.tokenCheck = (req,res,next)=>{
         }
     else{
         res.status(500).json({
-            msg:"internal server error"
+            msg:"middleware server error"
         })
     }
 }

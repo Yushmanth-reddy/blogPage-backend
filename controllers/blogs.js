@@ -24,6 +24,29 @@ exports.getAllblogs = (req,res)=>{
 
 }
 
+exports.getfeatureBlogs = (req,res)=>{
+    const email = req.email;
+    client.query(`select * from blogs`)
+    .then((data)=>{
+        const blogs = data.rows;
+        const filteredBlogs = blogs.map((eachBlog)=>{
+            return({
+                blogid : eachBlog.blogid,
+                title : eachBlog.title,
+                content : eachBlog.blogcontent,
+                likes : eachBlog.likes
+            })
+        })
+        res.status(200).json({
+            data : filteredBlogs,
+            msg:"Blogs recieved"
+        })
+    })
+    .catch((err)=>{
+        console.log(err);
+    })
+}
+
 exports.postblog = (req,res)=>{
     const {title,blogcontent} = req.body;
     const email = req.email;
@@ -42,6 +65,21 @@ exports.postblog = (req,res)=>{
     })
 }
 
+exports.likeCkeck = (req,res)=>{
+    const email = req.email;
+    const likedBlogid = [];
+    client.query(`select blogid from blogs where '${email}' = any (likedbyemail);`)
+    .then((data)=>{
+        const dataArray = data.rows
+        for (eachEl of dataArray){
+            likedBlogid.push(eachEl.blogid);
+        }
+        res.status(200).json({
+            data : likedBlogid
+        })
+    })
+}
+
 exports.addLike = (req,res)=>{
     const blogid = req.params.blogid;
     const email = req.email;
@@ -53,6 +91,15 @@ exports.addLike = (req,res)=>{
         .then((data)=>{
             res.status(200).json({
                 msg : "Likes added"
+            })
+            client.query(`update blogs set likedbyemail = ARRAY_APPEND(likedbyemail, '${email}') where blogid = ${blogid}`)
+            .then((data)=>{
+                res.status(200).json({
+                    msg:"email added to like updated"
+                })
+            })
+            .catch((err)=>{
+                msg : "database error"
             })
         })
         .catch((err)=>{
@@ -77,6 +124,15 @@ exports.removeLike = (req,res)=>{
         .then((data)=>{
             res.status(200).json({
                 msg : "Likes removed"
+            })
+            client.query(`update blogs set likedbyemail = ARRAY_REMOVE(likedbyemail, '${email}') where blogid = ${blogid}`)
+            .then((data)=>{
+                res.status(200).json({
+                    msg:"email added to like updated"
+                })
+            })
+            .catch((err)=>{
+                msg : "database error"
             })
         })
         .catch((err)=>{
